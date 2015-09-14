@@ -1,0 +1,128 @@
+
+require-macros:
+   engage ->
+      each!
+      task
+
+require:
+   engage as _e ->
+      Renamer, Engage, Write
+      task-function
+   postcss
+   node-sass
+   autoprefixer
+   "earlgrey/5" as eg
+   my-quaint
+
+inject:
+   options
+
+provide:
+   t-main, start
+
+
+create{} =
+   if options.create:
+      options.create{options}
+   else:
+      my-quaint.create{options}
+
+
+task finalize-quaint{file, env = {=}} =
+   tpl{q} =
+      t = q.documents.meta.get{.template}??.raw{}
+      q.documents.meta.set{.template, null}
+      t
+   q0 = create{}
+   q0.setenv{env}
+   q0.setenv{.url, @rename{file, extension = ".html"}.replace{R"^output/", "/"}}
+   var res = q0.translate{file.text, .html}
+   var template = tpl{q0}
+   while template:
+      t = @get{'./template/{template}.q'}
+      q = create{}
+      q.documents = q0.documents
+      q.setenv{.body, raw % res}
+      q.setenv{.url, @rename{file, extension = ".html"}.replace{R"^output/", "/"}}
+      q.setenv{env}
+      res = q.translate{t.text, .html}
+      template = tpl{q}
+   m = object with q0.documents.meta.entries{} each kv -> kv
+   m.contents = res
+   m
+
+
+task t-idx{index-file} =
+   articles =
+      @get{"./content"}.find{"**/*.q"} each file ->
+         m = finalize-quaint{file}
+         m &: {
+            path = file.path
+            url = @rename{file, extension = ".html"}.replace{R"^output/", "/"}
+            contents = null
+         }
+   finalize-quaint{index-file, {= articles}}
+
+
+task t-sass-resolve{base, url} =
+   {*parts, name} = url.split{"/"}
+   path = '{base}/{parts.join{"/"}}/_{name}.sass'
+   file = @get{path}
+   file.text
+   {file = file.path}
+
+
+task t-main{} =
+   c = @get{"./content"}
+
+   assets =
+      {"png", "svg", "jpg", "json", "css", "js"} each ext ->
+         c.find{'**/*.{ext}'} each! file ->
+            if file.path == "content/lib/config.js":
+               Write{@rename{file}, file.text.replace{rxp, repl}} where
+                  rxp = R.g"(\n *\"[a-z]*:\*\" *: *\")[./]+output/"
+                  repl{_, m} = m + "/"
+            else:
+               Write{@rename{file}, file.contents}
+
+   sasses =
+      c.find{'**/*.sass'} each! file ->
+         parts = file.path.split{"/"}
+         base = parts[... -1].join{"/"}
+         if not parts[parts.length - 1].starts-with{"_"}:
+            res = node-sass.render-sync{
+               data = file.text
+               indented-syntax = true
+               importer{url, prev, path} =
+                  t-sass-resolve{base, url}
+            }
+            css = [await postcss{{autoprefixer}}.process{res.css}].css
+            Write{@rename{file, extension = ".css"}, css}
+
+   egs =
+      c.find{'**/*.eg'} each! file ->
+         res = eg.compile{file.text, {path = file.path, es5 = true, source-map = true}}
+         {Write{@rename{file, extension = ".js"}, res.code}
+          Write{@rename{file, extension = ".js.map"}, res.map}}
+
+   quaints =
+      c.find{"**/*.q"} each! file ->
+         res = finalize-quaint{file}
+         Write{@rename{file, extension = ".html"}, res.contents}
+
+   indexes =
+      c.find{"**/*.iq"} each! file ->
+         res = t-idx{file}
+         Write{@rename{file, extension = ".html"}, res.contents}
+
+   {assets, sasses, egs, quaints, indexes}
+
+
+start{} =
+   Engage{t-main, opts &: [options.engage or {=}]}.run{} where opts = {
+      debounce = 100
+      rename = Renamer{from = "./content", to = './output{options.root or "/"}'}
+      read-only = {"./content"}
+      error{e} =
+         print e.stack
+   }
