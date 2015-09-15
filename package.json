@@ -1,12 +1,11 @@
 {
-  "name": "my-engage",
+  "name": "@breuleux/engage-config",
   "description": "tasks",
   "version": "0.0.0",
   "format": "cjs",
-  "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/breuleux/my-engage"
+    "url": "https://github.com/breuleux/engage-config"
   },
   "keywords": [],
   "author": "Olivier Breuleux",
@@ -17,6 +16,7 @@
     "earlgrey-runtime": ">=0.0.10",
     "node-sass": "^3.3.2",
     "postcss": "^5.0.5",
+    "@breuleux/quaint-config": ">=0.0.0",
     "engage": ">=0.0.0"
   },
   "devDependencies": {

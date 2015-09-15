@@ -12,7 +12,7 @@ require:
    node-sass
    autoprefixer
    "earlgrey/5" as eg
-   my-quaint
+   @breuleux/quaint-config
 
 inject:
    options
@@ -25,7 +25,7 @@ create{} =
    if options.create:
       options.create{options}
    else:
-      my-quaint.create{options}
+      quaint-config.create{options}
 
 
 task finalize-quaint{file, env = {=}} =
@@ -79,6 +79,9 @@ task t-main{} =
       {"png", "svg", "jpg", "json", "css", "js"} each ext ->
          c.find{'**/*.{ext}'} each! file ->
             if file.path == "content/lib/config.js":
+               ;; Minor patch to fix JSPM's configuration with respect
+               ;; to ours... this strips out the "../../output" part
+               ;; that certain paths have
                Write{@rename{file}, file.text.replace{rxp, repl}} where
                   rxp = R.g"(\n *\"[a-z]*:\*\" *: *\")[./]+output/"
                   repl{_, m} = m + "/"
