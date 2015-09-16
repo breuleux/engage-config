@@ -17,7 +17,7 @@
     "node-sass": "^3.3.2",
     "postcss": "^5.0.5",
     "@breuleux/quaint-config": ">=0.0.0",
-    "engage": ">=0.0.0"
+    "@breuleux/engage": ">=0.0.0"
   },
   "devDependencies": {
     "earlgrey": ">=0.0.11",
