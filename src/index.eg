@@ -1,11 +1,11 @@
 
 require-macros:
-   @breuleux/engage ->
+   engage ->
       each!
       task
 
 require:
-   "@breuleux/engage" ->
+   engage as _e ->
       Renamer, Engage, Write
       task-function
    postcss
