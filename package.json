@@ -1,5 +1,5 @@
 {
-  "name": "engage-config",
+  "name": "@breuleux/engage-config",
   "description": "tasks",
   "version": "0.0.2",
   "format": "cjs",
