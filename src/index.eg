@@ -76,15 +76,15 @@ task t-main{} =
    c = @get{"./content"}
 
    assets =
-      {"png", "svg", "jpg", "json", "css", "js"} each ext ->
+      {"png", "svg", "jpg", "json", "css", "js", "tpl"} each ext ->
          c.find{'**/*.{ext}'} each! file ->
             if file.path == "content/lib/config.js":
                ;; Minor patch to fix JSPM's configuration with respect
                ;; to ours... this strips out the "../../output" part
                ;; that certain paths have
                Write{@rename{file}, file.text.replace{rxp, repl}} where
-                  rxp = R.g"(\n *\"[a-z]*:\*\" *: *\")[./]+output/"
-                  repl{_, m} = m + "/"
+                  rxp = R.g"(\n *\"[a-z]*:\*\" *: *\").*(?=jspm_packages/)"
+                  repl{_, m} = m
             else:
                Write{@rename{file}, file.contents}
 
