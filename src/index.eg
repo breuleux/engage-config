@@ -30,13 +30,27 @@ create{} =
 
 task finalize-quaint{file, env = {=}} =
    tpl{q} =
-      t = q.documents.meta.get{.template}??.raw{}
+      t = q.template or q.documents.meta.get{.template}??.raw{}
       q.documents.meta.set{.template, null}
+      q.template = null
       t
    q0 = create{}
+
+   q0.register-resolvers with {
+      default{filename} =
+         f = @get{'./template/{filename}.q'}
+         {file = f.path
+          contents = f.text}
+   }
+
    q0.setenv{env}
    q0.setenv{.url, @rename{file, extension = ".html"}.replace{R"^output/", "/"}}
-   var res = q0.translate{file.text, .html}
+   var res =
+      try:
+         q0.translate{file.text, .html}
+      catch e:
+         print e.stack
+         throw e
    var template = tpl{q0}
    while template:
       t = @get{'./template/{template}.q'}
@@ -76,7 +90,7 @@ task t-main{} =
    c = @get{"./content"}
 
    assets =
-      {"png", "svg", "jpg", "json", "css", "js", "tpl"} each ext ->
+      {"png", "svg", "jpg", "json", "css", "js", "tpl", "txt", "qdat"} each ext ->
          c.find{'**/*.{ext}'} each! file ->
             if file.path == "content/lib/config.js":
                ;; Minor patch to fix JSPM's configuration with respect
