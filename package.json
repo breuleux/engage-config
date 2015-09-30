@@ -13,14 +13,14 @@
   "main": "./lib/index.js",
   "dependencies": {
     "autoprefixer": "^6.0.2",
-    "earlgrey-runtime": ">=0.0.10",
+    "earlgrey-runtime": ">=0.0.11",
     "node-sass": "^3.3.2",
     "postcss": "^5.0.5",
-    "@breuleux/quaint-config": ">=0.0.1",
+    "@breuleux/quaint-config": ">=0.0.3",
     "engage": ">=0.0.6"
   },
   "devDependencies": {
-    "earlgrey": ">=0.0.11",
+    "earlgrey": ">=0.0.12",
     "mocha": "^2.2.1",
     "earl-mocha": ">=0.0.2"
   },
